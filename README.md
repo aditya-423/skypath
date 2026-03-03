@@ -31,6 +31,7 @@ skypath/
 ├── frontend/
 │   ├── src/
 │   │   └── App.jsx
+│   │   └── App.css
 │   ├── Dockerfile
 │
 ├── docker-compose.yml
