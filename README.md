@@ -12,7 +12,7 @@ The system allows users to search valid itineraries (direct, 1-stop, and 2-stop 
 ```bash
 git clone <your-repo>
 cd skypath
-docker-compose up
+docker compose up --build
 ```
 
 ---
