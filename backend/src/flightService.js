@@ -1,10 +1,28 @@
+/**
+ * Flight Search Service
+ *
+ * Implements DFS-based search to generate all valid itineraries
+ * up to 3 segments, enforcing connection rules:
+ *
+ * - Minimum layover (domestic/international)
+ * - Maximum layover
+ * - No airport switching
+ * - Timezone-aware duration calculation
+ */
+
 const { getAirports, getFlightsByOrigin } = require("./dataLoader");
 const { toUTC, durationMinutes } = require("./utils");
 
+// Connection rule thresholds (in minutes)
 const MIN_DOMESTIC = 45;
 const MIN_INTL = 90;
 const MAX_LAYOVER = 360;
 
+/**
+ * Finds all valid itineraries between origin and destination.
+ * Uses DFS to explore possible flight paths.
+ * Returns results sorted by total travel duration.
+ */
 function searchFlights(origin, destination, date) {
   if (origin === destination) return [];
 
@@ -22,7 +40,7 @@ function searchFlights(origin, destination, date) {
   const results = [];
 
   function dfs(currentAirport, path, visited) {
-    if (path.length > 3) return;
+    if (path.length > 3) return; // Limit to maximum 3 flight segments to avoid excessive depth
 
     if (currentAirport === destination && path.length > 0) {
       results.push(buildItinerary(path, airportMap));
@@ -52,6 +70,7 @@ function searchFlights(origin, destination, date) {
           departureAirport.timezone
         );
 
+        // Calculate layover time in UTC to ensure timezone correctness
         const layover = durationMinutes(arrivalUTC, departureUTC);
 
         const isDomestic =
@@ -77,6 +96,12 @@ function searchFlights(origin, destination, date) {
   return results.sort((a, b) => a.totalDuration - b.totalDuration);
 }
 
+/**
+ * Constructs itinerary object:
+ * - Computes total duration (UTC-based)
+ * - Computes total price
+ * - Computes layover durations between segments
+ */
 function buildItinerary(path, airportMap) {
   let totalPrice = 0;
 

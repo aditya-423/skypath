@@ -1,3 +1,15 @@
+/**
+ * SkyPath Frontend Application
+ *
+ * Features:
+ * - Searchable airport inputs (typeahead)
+ * - Date picker
+ * - Flight results display
+ * - Layover visualization
+ * - Stops indicator
+ * - Loading & error handling
+ */
+
 import { useEffect, useState } from "react";
 import "./App.css";
 
@@ -16,19 +28,32 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const [originQuery, setOriginQuery] = useState("");
+  const [destinationQuery, setDestinationQuery] = useState("");
+  const [showOriginDropdown, setShowOriginDropdown] = useState(false);
+  const [showDestinationDropdown, setShowDestinationDropdown] = useState(false);
+
   useEffect(() => {
     fetch("http://localhost:3000/airports")
       .then(res => res.json())
       .then(data => setAirports(data));
   }, []);
 
+  const filteredOrigins = airports.filter(a =>
+    a.code.toLowerCase().includes(originQuery.toLowerCase())
+  );
+
+  const filteredDestinations = airports.filter(a =>
+    a.code.toLowerCase().includes(destinationQuery.toLowerCase())
+  );
+
+  // Handles flight search request and manages loading & error states
   const search = async () => {
     setError("");
     setResults([]);
 
-    // Input validation
     if (!origin || !destination || !date) {
-      setError("Please select origin, destination and date.");
+      setError("Please select valid origin, destination and date.");
       return;
     }
 
@@ -66,34 +91,92 @@ function App() {
         <p className="subtitle">Find the best flight connections worldwide</p>
 
         <div className="search-card">
-          <select value={origin} onChange={e => setOrigin(e.target.value)}>
-            <option value="">Select Origin</option>
-            {airports.map(a => (
-              <option key={a.code} value={a.code}>
-                {a.name} ({a.code})
-              </option>
-            ))}
-          </select>
 
-          <select value={destination} onChange={e => setDestination(e.target.value)}>
-            <option value="">Select Destination</option>
-            {airports.map(a => (
-              <option key={a.code} value={a.code}>
-                {a.name} ({a.code})
-              </option>
-            ))}
-          </select>
+          {/* Searchable origin input with live filtering dropdown */}
+          {/* ORIGIN INPUT */} 
+          <div className="input-group">
+            <input
+              type="text"
+              placeholder="Enter Origin (e.g. JFK)"
+              value={originQuery}
+              onChange={(e) => {
+                const value = e.target.value.toUpperCase();
+                setOriginQuery(value);
+                setOrigin("");
+                setShowOriginDropdown(true);
+              }}
+              onFocus={() => setShowOriginDropdown(true)}
+            />
 
+            {showOriginDropdown && originQuery && (
+              <div className="dropdown">
+                {filteredOrigins.length > 0 ? (
+                  filteredOrigins.map(a => (
+                    <div
+                      key={a.code}
+                      className="dropdown-item"
+                      onClick={() => {
+                        setOrigin(a.code);
+                        setOriginQuery(a.code);
+                        setShowOriginDropdown(false);
+                      }}
+                    >
+                      {a.name} ({a.code})
+                    </div>
+                  ))
+                ) : (
+                  <div className="dropdown-item">No matches</div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* DESTINATION INPUT  - Searchable dest input with live filtering dropdown*/}
+          <div className="input-group">
+            <input
+              type="text"
+              placeholder="Enter Destination (e.g. LAX)"
+              value={destinationQuery}
+              onChange={(e) => {
+                const value = e.target.value.toUpperCase();
+                setDestinationQuery(value);
+                setDestination("");
+                setShowDestinationDropdown(true);
+              }}
+              onFocus={() => setShowDestinationDropdown(true)}
+            />
+
+            {showDestinationDropdown && destinationQuery && (
+              <div className="dropdown">
+                {filteredDestinations.length > 0 ? (
+                  filteredDestinations.map(a => (
+                    <div
+                      key={a.code}
+                      className="dropdown-item"
+                      onClick={() => {
+                        setDestination(a.code);
+                        setDestinationQuery(a.code);
+                        setShowDestinationDropdown(false);
+                      }}
+                    >
+                      {a.name} ({a.code})
+                    </div>
+                  ))
+                ) : (
+                  <div className="dropdown-item">No matches</div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* DATE */}
           <input
             type="date"
             value={date}
             onChange={e => setDate(e.target.value)}
           />
 
-          <button
-            onClick={search}
-            disabled={loading}
-          >
+          <button onClick={search} disabled={loading}>
             {loading ? "Searching..." : "Search Flights"}
           </button>
         </div>
@@ -104,50 +187,61 @@ function App() {
           {!loading && results.length === 0 && !error && date && (
             <p className="empty">No flights found for this route.</p>
           )}
+          {/* Render itineraries sorted by total duration */}
+          {results.map((itinerary, i) => {
+            const stops = itinerary.segments.length - 1;
 
-          {results.map((itinerary, i) => (
-            <div key={i} className="itinerary-card">
-              <div className="summary">
-                <div>
-                  <h3>{formatDuration(itinerary.totalDuration)}</h3>
-                  <span>Total Duration</span>
+            return (
+              <div key={i} className="itinerary-card">
+                <div className="summary">
+                  <div>
+                    <h3>{formatDuration(itinerary.totalDuration)}</h3>
+                    <span>Total Duration</span>
+                  </div>
+
+                  <div>
+                    <h3>
+                      {stops === 0
+                        ? "Non-stop"
+                        : `${stops} Stop${stops > 1 ? "s" : ""}`}
+                    </h3>
+                    <span>Stops</span>
+                  </div>
+
+                  <div>
+                    <h3>${itinerary.totalPrice}</h3>
+                    <span>Total Price</span>
+                  </div>
                 </div>
 
-                <div>
-                  <h3>${itinerary.totalPrice}</h3>
-                  <span>Total Price</span>
-                </div>
-              </div>
+                <div className="segments">
+                  {itinerary.segments.map((seg, j) => (
+                    <div key={j}>
+                      {seg.layover && (
+                        <div className="layover">
+                          Layover: {Math.floor(seg.layover / 60)}h {seg.layover % 60}m
+                        </div>
+                        // Display layover time between connecting flights
+                      )}
 
-              <div className="segments">
-                {itinerary.segments.map((seg, j) => (
-                  <div key={j}>
-                    
-                    {/* Show layover BEFORE this segment if it exists */}
-                    {seg.layover && (
-                      <div className="layover">
-                        Layover: {Math.floor(seg.layover / 60)}h {seg.layover % 60}m
-                      </div>
-                    )}
+                      <div className="segment">
+                        <div className="segment-left">
+                          <strong>{seg.flightNumber}</strong>
+                          <p>{seg.origin} → {seg.destination}</p>
+                        </div>
 
-                    <div className="segment">
-                      <div className="segment-left">
-                        <strong>{seg.flightNumber}</strong>
-                        <p>{seg.origin} → {seg.destination}</p>
-                      </div>
-
-                      <div className="segment-right">
-                        <p>{seg.departureTime.slice(11, 16)} ({seg.origin})</p>
-                        <p>{seg.arrivalTime.slice(11, 16)} ({seg.destination})</p>
+                        <div className="segment-right">
+                          <p>{seg.departureTime.slice(11, 16)} ({seg.origin})</p>
+                          <p>{seg.arrivalTime.slice(11, 16)} ({seg.destination})</p>
+                        </div>
                       </div>
                     </div>
+                  ))}
+                </div>
 
-                  </div>
-                ))}
               </div>
-
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
