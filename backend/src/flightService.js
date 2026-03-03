@@ -98,8 +98,27 @@ function buildItinerary(path, airportMap) {
     lastArrivalUTC
   );
 
-  const segments = path.map(f => {
+  const segments = path.map((f, index) => {
     totalPrice += f.price;
+
+    let layover = null;
+
+    if (index > 0) {
+        const prevFlight = path[index - 1];
+
+        const prevArrivalUTC = toUTC(
+        prevFlight.arrivalTime,
+        airportMap[prevFlight.destination].timezone
+        );
+
+        const currentDepartureUTC = toUTC(
+        f.departureTime,
+        airportMap[f.origin].timezone
+        );
+
+        layover = durationMinutes(prevArrivalUTC, currentDepartureUTC);
+    }
+
     return {
       flightNumber: f.flightNumber,
       airline: f.airline,
@@ -107,7 +126,10 @@ function buildItinerary(path, airportMap) {
       destination: f.destination,
       departureTime: f.departureTime,
       arrivalTime: f.arrivalTime,
+      departureTimezone: airportMap[f.origin].timezone,
+      arrivalTimezone: airportMap[f.destination].timezone,
       price: f.price,
+      layover,
     };
   });
 

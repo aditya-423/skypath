@@ -14,6 +14,7 @@ function App() {
   const [date, setDate] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     fetch("http://localhost:3000/airports")
@@ -22,18 +23,40 @@ function App() {
   }, []);
 
   const search = async () => {
-    if (!origin || !destination || !date) return;
-
-    setLoading(true);
+    setError("");
     setResults([]);
 
-    const res = await fetch(
-      `http://localhost:3000/search?origin=${origin}&destination=${destination}&date=${date}`
-    );
+    // Input validation
+    if (!origin || !destination || !date) {
+      setError("Please select origin, destination and date.");
+      return;
+    }
 
-    const data = await res.json();
-    setResults(data);
-    setLoading(false);
+    if (origin === destination) {
+      setError("Origin and destination cannot be the same.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const res = await fetch(
+        `http://localhost:3000/search?origin=${origin}&destination=${destination}&date=${date}`
+      );
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || "Something went wrong.");
+      }
+
+      const data = await res.json();
+      setResults(data);
+
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -69,15 +92,17 @@ function App() {
 
           <button
             onClick={search}
-            disabled={!origin || !destination || !date}
+            disabled={loading}
           >
             {loading ? "Searching..." : "Search Flights"}
           </button>
         </div>
 
+        {error && <p className="error">{error}</p>}
+
         <div className="results">
-          {!loading && results.length === 0 && date && (
-            <p className="empty">No flights found.</p>
+          {!loading && results.length === 0 && !error && date && (
+            <p className="empty">No flights found for this route.</p>
           )}
 
           {results.map((itinerary, i) => (
@@ -96,18 +121,31 @@ function App() {
 
               <div className="segments">
                 {itinerary.segments.map((seg, j) => (
-                  <div key={j} className="segment">
-                    <div className="segment-left">
-                      <strong>{seg.flightNumber}</strong>
-                      <p>{seg.origin} → {seg.destination}</p>
+                  <div key={j}>
+                    
+                    {/* Show layover BEFORE this segment if it exists */}
+                    {seg.layover && (
+                      <div className="layover">
+                        Layover: {Math.floor(seg.layover / 60)}h {seg.layover % 60}m
+                      </div>
+                    )}
+
+                    <div className="segment">
+                      <div className="segment-left">
+                        <strong>{seg.flightNumber}</strong>
+                        <p>{seg.origin} → {seg.destination}</p>
+                      </div>
+
+                      <div className="segment-right">
+                        <p>{seg.departureTime.slice(11, 16)} ({seg.origin})</p>
+                        <p>{seg.arrivalTime.slice(11, 16)} ({seg.destination})</p>
+                      </div>
                     </div>
-                    <div className="segment-right">
-                      <p>{seg.departureTime.slice(11,16)}</p>
-                      <p>{seg.arrivalTime.slice(11,16)}</p>
-                    </div>
+
                   </div>
                 ))}
               </div>
+
             </div>
           ))}
         </div>
