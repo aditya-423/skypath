@@ -1,0 +1,130 @@
+body {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: #1f2937;
+}
+
+.page {
+  min-height: 100vh;
+  padding: 40px 20px;
+}
+
+.container {
+  max-width: 1000px;
+  margin: auto;
+}
+
+.logo {
+  text-align: center;
+  font-size: 2.5rem;
+  color: white;
+  margin-bottom: 5px;
+}
+
+.subtitle {
+  text-align: center;
+  color: #cbd5e1;
+  margin-bottom: 30px;
+}
+
+.search-card {
+  background: white;
+  padding: 20px;
+  border-radius: 14px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  margin-bottom: 40px;
+}
+
+select,
+input {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  flex: 1;
+  min-width: 150px;
+}
+
+button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+button:hover {
+  background: #1e40af;
+}
+
+button:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.itinerary-card {
+  background: white;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  transition: transform 0.2s ease;
+}
+
+.itinerary-card:hover {
+  transform: translateY(-4px);
+}
+
+.summary {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.summary h3 {
+  margin: 0;
+  font-size: 1.4rem;
+  color: #111827;
+}
+
+.summary span {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.segment {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-top: 1px solid #f1f5f9;
+}
+
+.segment-left strong {
+  font-size: 1rem;
+}
+
+.segment-left p {
+  margin: 3px 0;
+  color: #6b7280;
+}
+
+.segment-right p {
+  margin: 3px 0;
+  text-align: right;
+}
+
+.empty {
+  text-align: center;
+  color: #cbd5e1;
+}

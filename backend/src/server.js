@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const { loadData } = require("./dataLoader");
+const { loadData, getAirports } = require("./dataLoader");
 const { searchFlights } = require("./flightService");
 
 loadData();
@@ -8,6 +8,11 @@ loadData();
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+app.get("/airports", (req, res) => {
+  const airports = getAirports();
+  res.json(airports);
+});
 
 app.get("/search", (req, res) => {
   try {
