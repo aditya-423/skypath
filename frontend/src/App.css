@@ -165,3 +165,23 @@ button:disabled { background: #94a3b8; opacity: 0.7; cursor: not-allowed; }
 
 .error { color: #ef4444; text-align: center; margin-bottom: 20px; font-weight: 500; }
 .empty { text-align: center; color: #94a3b8; }
+
+:root {
+  color-scheme: light;
+}
+
+input,
+select,
+textarea {
+  background-color: white;
+  color: black;
+}
+
+.dropdown {
+  background: white;
+  color: #111827;   /* force dark text */
+}
+
+.dropdown-item {
+  color: #111827;   /* explicit text color */
+}

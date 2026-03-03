@@ -16,9 +16,11 @@ let flightsByOrigin = {};
 
 // Loads flight and airport data into memory at server startup
 function loadData() {
-  const data = JSON.parse(
-    fs.readFileSync(path.join(__dirname, "../../flights.json"))
-  );
+  const filePath = path.resolve(__dirname, "../flights.json");
+  console.log("Reading file from:", filePath);
+
+  const raw = fs.readFileSync(filePath, "utf-8");
+  const data = JSON.parse(raw);
 
   airports = data.airports;
   flights = data.flights;
